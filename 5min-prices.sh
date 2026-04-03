@@ -13,8 +13,8 @@ BASE_URL="https://hourlypricing.comed.com/api"
 # ---------- build timestamps --------------------------------------------------
 # ComEd format: YYYYMMDDhhmm  (local time, exact — no rounding)
 now_epoch=$(date +%s)
-start_epoch=$(( now_epoch - 300 ))   # 5 minutes ago
-end_epoch=$(( now_epoch + 300 ))     # 5 minutes from now
+start_epoch=$(( now_epoch - 1200 ))   # 5 minutes ago
+end_epoch=$(( now_epoch + 1200 ))     # 5 minutes from now
 
 # Format as YYYYMMDDhhmm in local time (truncates seconds naturally)
 datestart=$(date -d "@${start_epoch}" +"%Y%m%d%H%M" 2>/dev/null \
@@ -46,29 +46,29 @@ fi
 
 if [[ -z "$response" || "$response" == "[]" ]]; then
   echo " No data returned for this window."
-  echo " (ComEd may not yet have prices for future 5-min slots;"
-  echo "  try a window fully in the past.)"
+  echo " (ComEd has not yet published prices for this interval; try again shortly.)"
   exit 0
 fi
 
-# ---------- pretty-print with human-readable timestamps -----------------------
-echo " Raw JSON:"
-echo "$response" | python3 -m json.tool 2>/dev/null || echo "$response"
+# ---------- pretty-print + decode — pass response as argv[1] to avoid stdin conflict
+python3 - "$response" <<'PYEOF'
+import sys, json, datetime
 
-echo ""
-echo "------------------------------------------------------------"
-echo " Decoded timestamps (UTC millis → local time):"
-echo "------------------------------------------------------------"
+raw = sys.argv[1]
 
-echo "$response" | python3 - <<'PYEOF'
-import sys, json, datetime, os
-
-raw = sys.stdin.read().strip()
 try:
     records = json.loads(raw)
 except json.JSONDecodeError as e:
     print(f"  JSON parse error: {e}")
     sys.exit(1)
+
+# Pretty-print raw JSON
+print(" Raw JSON:")
+print(json.dumps(records, indent=4))
+print()
+print("------------------------------------------------------------")
+print(" Decoded timestamps (UTC millis → local time):")
+print("------------------------------------------------------------")
 
 if not records:
     print("  (no records)")
