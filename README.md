@@ -10,3 +10,7 @@ Prompt:
 * Let's not round to the nearest 5 minute slot. I'm curious what the results will be as time progresses.
 
 Result is `5min-prices.sh`
+
+## 2026-06-11 investigate timing
+
+Purpose is to explore the timing of updates which seem delayed from real time by over ten minutes. Produce output that includes the most recent reading, time stamp for that reading, time stamp when the script ran and delay between the two time stamps. This can be run 1/minute to observe when a new reading will arrive.
