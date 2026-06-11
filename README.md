@@ -2,6 +2,8 @@
 
 Scrape Comed (Commonwealth Edison) live prices using their API
 
+* <https://hourlypricing.comed.com/hp-api/>
+
 ## 2026-04-03 work with Claude to write a script.
 
 Prompt:
