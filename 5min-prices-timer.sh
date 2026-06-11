@@ -41,7 +41,7 @@ fi
 
 # ---------- pretty-print + decode — pass response as argv[1] to avoid stdin conflict
 python3 - "$response" <<'PYEOF'
-import sys, json, datetime
+import sys, json, time
 
 raw = sys.argv[1]
 
@@ -58,10 +58,11 @@ if not records:
 records.sort(reverse=True, key=lambda r: int(r["millisUTC"]))
 
 for r in records:
-    millis = int(r["millisUTC"])
+    timestamp = int(int(r["millisUTC"])/1000)
     price  = r["price"]
-    dt_local = datetime.datetime.fromtimestamp(millis / 1000)
-    print(f"  {millis:<16} {price}")
+    present_time = int(time.time())
+    delay = int(present_time-timestamp)
+    print(f"{timestamp} {present_time} {price} {delay}")
     sys.exit(0);
 
 PYEOF
