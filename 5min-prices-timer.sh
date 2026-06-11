@@ -1,69 +1,38 @@
 #!/usr/bin/env bash
 # =============================================================================
 # comed_5min_prices.sh
-# Fetches ComEd 5-minute pricing for a window centered on the current time:
-#   5 minutes before  →  now  →  5 minutes after
+# Fetches the most recent ComEd 5-minute price and prints:
+#   report_time  current_time  price  delay_seconds
 #
 # Usage:  bash comed_5min_prices.sh
-# Requires: curl, python3 (for JSON pretty-print)
+# Requires: curl, jq
 # =============================================================================
 
 BASE_URL="https://hourlypricing.comed.com/api"
 
-# ---------- build timestamps --------------------------------------------------
-# ComEd format: YYYYMMDDhhmm  (local time, exact — no rounding)
 now_epoch=$(date +%s)
-start_epoch=$(( now_epoch - 1200 ))   # 5 minutes ago
-end_epoch=$(( now_epoch + 1200 ))     # 5 minutes from now
+start_epoch=$(( now_epoch - 1200 ))
+end_epoch=$(( now_epoch + 1200 ))
 
-# Format as YYYYMMDDhhmm in local time (truncates seconds naturally)
 datestart=$(date -d "@${start_epoch}" +"%Y%m%d%H%M" 2>/dev/null \
-         || date -r "${start_epoch}"  +"%Y%m%d%H%M")   # macOS fallback
-
+         || date -r "${start_epoch}"  +"%Y%m%d%H%M")
 dateend=$(date -d "@${end_epoch}" +"%Y%m%d%H%M" 2>/dev/null \
-       || date -r "${end_epoch}"  +"%Y%m%d%H%M")       # macOS fallback
+       || date -r "${end_epoch}"  +"%Y%m%d%H%M")
 
-# ---------- call the API ------------------------------------------------------
 URL="${BASE_URL}?type=5minutefeed&datestart=${datestart}&dateend=${dateend}&format=json"
 
 response=$(curl --silent --fail "$URL")
-curl_exit=$?
 
-if [[ $curl_exit -ne 0 ]]; then
-  echo " ERROR: curl failed (exit ${curl_exit}). Check network / URL." >&2
-  exit $curl_exit
+if [[ $? -ne 0 || -z "$response" || "$response" == "[]" ]]; then
+  exit 1
 fi
 
-if [[ -z "$response" || "$response" == "[]" ]]; then
-  echo " No data returned for this window."
-  exit 0
-fi
+# Pick the record with the highest millisUTC, extract report_time (seconds) and price
+read -r report_time price <<< "$(
+  echo "$response" \
+  | jq -r 'max_by(.millisUTC | tonumber)
+           | [(.millisUTC | tonumber / 1000 | floor), .price]
+           | @tsv'
+)"
 
-# ---------- pretty-print + decode — pass response as argv[1] to avoid stdin conflict
-python3 - "$response" <<'PYEOF'
-import sys, json, time
-
-raw = sys.argv[1]
-
-try:
-    records = json.loads(raw)
-except json.JSONDecodeError as e:
-    print(f"  JSON parse error: {e}")
-    sys.exit(1)
-
-if not records:
-    sys.exit(0)
-
-# Sort descending by time. We only want the latest
-records.sort(reverse=True, key=lambda r: int(r["millisUTC"]))
-
-for r in records:
-    timestamp = int(int(r["millisUTC"])/1000)
-    price  = r["price"]
-    present_time = int(time.time())
-    delay = int(present_time-timestamp)
-    print(f"{timestamp} {present_time} {price} {delay}")
-    sys.exit(0);
-
-PYEOF
-
+echo "$report_time $now_epoch $price $(( now_epoch - report_time ))"
