@@ -1,0 +1,13 @@
+[Unit]
+Description=Fetch ComEd 5-minute price and publish to MQTT
+# Prevent overlapping runs if a previous invocation is still in progress
+# (systemd already won't start a new instance of an active oneshot service
+# of the same name, but this documents the intent)
+
+[Service]
+Type=oneshot
+WorkingDirectory=__INSTALL_DIR__
+ExecStart=/bin/bash -c '__INSTALL_DIR__/5min-prices-json.sh | mosquitto_pub -h mqtt -s -t "HA/__HOSTNAME__/comed/5_minute_cost"'
+
+# Hardening (optional, relax if it causes issues in your environment)
+NoNewPrivileges=true

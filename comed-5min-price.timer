@@ -1,0 +1,13 @@
+[Unit]
+Description=Trigger ComEd 5-minute price fetch every 5 minutes
+
+[Timer]
+# Fire on each 5-minute wall-clock boundary (00,05,10,...,55)
+OnCalendar=*:0/5
+# If the system was asleep/down at the trigger time, run once on resume
+Persistent=true
+# AccuracySec keeps it close to the boundary; tune as desired
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
