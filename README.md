@@ -29,3 +29,25 @@ mkdir -p ~/bin
 cp 5min-prices-json.sh ~/bin
 ./install-comed-timer.sh ~/bin # and follow instructions provided by this script
 ```
+
+Typical feedback from the install script:
+
+```text
+Installed:
+  /home/hbarta/.config/systemd/user/comed-5min-price.service
+  /home/hbarta/.config/systemd/user/comed-5min-price.timer
+
+Hostname baked in: trixi
+Script path: /home/hbarta/bin/5min-prices-json.sh
+
+Next steps:
+  systemctl --user daemon-reload
+  systemctl --user enable --now comed-5min-price.timer
+
+To check status / logs:
+  systemctl --user list-timers comed-5min-price.timer
+  journalctl --user -u comed-5min-price.service -f
+
+Note: for the timer to run when you're not logged in, enable lingering:
+  loginctl enable-linger $USER
+```
