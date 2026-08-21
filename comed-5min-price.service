@@ -7,7 +7,7 @@ Description=Fetch ComEd 5-minute price and publish to MQTT
 [Service]
 Type=oneshot
 WorkingDirectory=__INSTALL_DIR__
-ExecStart=/bin/bash -c '__INSTALL_DIR__/5min-prices-json.sh | mosquitto_pub -h mqtt -s -t "HA/__HOSTNAME__/comed/5_minute_cost"'
+ExecStart=/bin/bash -c '__INSTALL_DIR__/5min-prices-json.sh | mosquitto_pub -h mqtt -r -s -t "HA/__HOSTNAME__/comed/5_minute_cost"'
 
 # Hardening (optional, relax if it causes issues in your environment)
 NoNewPrivileges=true
