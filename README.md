@@ -16,3 +16,16 @@ Result is `5min-prices.sh`
 ## 2026-06-11 investigate timing
 
 Purpose is to explore the timing of updates which seem delayed from real time by over ten minutes. Produce output that includes the most recent reading, time stamp for that reading, time stamp when the script ran and delay between the two time stamps. This can be run 1/minute to observe when a new reading will arrive.
+
+## 2026-08-21 deploy
+
+This has been running several months on `oak` and seems to be providing useful results. Time to describe how to deploy.
+
+```text
+cd ../some/convenient/directory
+git clone git@github.com:HankB/Comed-price-data-scraper.git # or your fork or the HTTPS URL
+cd Comed-price-data-scraper
+mkdir -p ~/bin
+cp 5min-prices-json.sh ~/bin
+./install-comed-timer.sh ~/bin # and follow instructions provided by this script
+```
