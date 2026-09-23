@@ -22,6 +22,7 @@ Purpose is to explore the timing of updates which seem delayed from real time by
 This has been running several months on `oak` and seems to be providing useful results. Time to describe how to deploy.
 
 ```text
+sudo apt install jq # or corresponding command for your environment.
 cd ../some/convenient/directory
 git clone git@github.com:HankB/Comed-price-data-scraper.git # or your fork or the HTTPS URL
 cd Comed-price-data-scraper
